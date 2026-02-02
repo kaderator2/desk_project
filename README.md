@@ -1,6 +1,6 @@
 # Standing Desk Controller (ESP32 + VL53L1X)
 
-Minimal firmware to run a standing desk controller using an ESP32, a Pololu VL53L1X ToF sensor (tight ROI for desk height), and two optocoupler-driven relays for UP/DOWN control. Integrates with ESPHome and HomeAssistant. Automated height-based presets to come!
+Minimal proof-of-concept firmware to run a standing desk controller using an ESP32, a Pololu VL53L1X ToF sensor (tight ROI for desk height), and two optocoupler-driven relays for UP/DOWN control. Integrates with ESPHome and HomeAssistant. Automated height-based presets to come!
 
 ## Features
 - VL53L1X long-range mode, 4x4 ROI, continuous 50ms sampling

@@ -1,0 +1,118 @@
+esphome:
+  name: desk-controller
+  friendly_name: "Standing Desk"
+  
+  # Include our custom C++ file
+  includes:
+    - tof_vl53l1x.h
+
+  # Download the Pololu Library
+  libraries:
+    - "pololu/VL53L1X"
+
+  # Run setup on boot
+  on_boot:
+    priority: 600
+    then:
+      - lambda: |-
+          tof_setup();
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+# --- ENABLE TOUCH CONTROLLER ---
+esp32_touch:
+  setup_mode: true
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+logger:
+  level: DEBUG
+
+web_server:
+  port: 80
+
+api:
+
+# --- SENSOR CONFIGURATION ---
+sensor:
+  # Use the "template" platform to call our C++ code
+  - platform: template
+    name: "Desk Height"
+    id: desk_height_sensor
+    unit_of_measurement: "m"
+    accuracy_decimals: 3
+    update_interval: 200ms
+    
+    # Call the C++ read function
+    lambda: |-
+      return tof_read();
+      
+    filters:
+      - sliding_window_moving_average:
+          window_size: 5
+          send_every: 1
+
+# --- THE HANDS (Optocouplers) ---
+output:
+  - platform: gpio
+    pin: 25
+    id: desk_up_relay
+    inverted: false
+
+  - platform: gpio
+    pin: 26
+    id: desk_down_relay
+    inverted: false
+
+# --- TOUCH CONTROL (Physical Wires) ---
+binary_sensor:
+  # UP WIRE (Pin 32)
+  - platform: esp32_touch
+    pin: 32
+    name: "Touch UP Wire"
+    threshold: 500 
+    on_press:
+      then:
+        - output.turn_on: desk_up_relay
+    on_release:
+      then:
+        - output.turn_off: desk_up_relay
+
+  # DOWN WIRE (Pin 33)
+  - platform: esp32_touch
+    pin: 33
+    name: "Touch DOWN Wire"
+    threshold: 500 
+    on_press:
+      then:
+        - output.turn_on: desk_down_relay
+    on_release:
+      then:
+        - output.turn_off: desk_down_relay
+
+# --- HOME ASSISTANT CONTROLS ---
+switch:
+  - platform: template
+    name: "Desk Nudge UP"
+    icon: "mdi:arrow-up-bold-box-outline"
+    turn_on_action:
+      - output.turn_on: desk_up_relay
+      - delay: 500ms
+      - output.turn_off: desk_up_relay
+      - switch.turn_off: desk_nudge_up
+    id: desk_nudge_up
+
+  - platform: template
+    name: "Desk Nudge DOWN"
+    icon: "mdi:arrow-down-bold-box-outline"
+    turn_on_action:
+      - output.turn_on: desk_down_relay
+      - delay: 500ms
+      - output.turn_off: desk_down_relay
+      - switch.turn_off: desk_nudge_down
+    id: desk_nudge_down

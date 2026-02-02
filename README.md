@@ -31,6 +31,8 @@ Minimal firmware to run a standing desk controller using an ESP32, a Pololu VL53
 - Touch control wires (physical touch pads):
     - Touch UP -> Touch Pin 32
     - Touch DOWN -> Touch Pin 33
+    
+
 ![alt text](https://i.imgur.com/dVJLNq9.png)
 
 ## Software / Libraries
